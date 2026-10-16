@@ -57,7 +57,7 @@ except ImportError:
 
 SCOPES = ["https://www.googleapis.com/auth/youtube"]
 TOKEN_FILE = "youtube_token.json"
-SECRETS_FILE = "client_secrets.json"
+SECRETS_FILE = "client_secrets.json.json"
 OUT_DIR = Path("videos")
 OUT_DIR.mkdir(exist_ok=True)
 TOPICS_FILE = Path("topics.txt")
