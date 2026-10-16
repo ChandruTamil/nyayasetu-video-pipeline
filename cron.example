@@ -1,0 +1,3 @@
+# NyayaSetu Shorts — weekday 9 AM
+# Adjust the cd path to your project folder.
+0 9 * * 1-5 cd /path/to/nyayasetu-video-pipeline && /usr/bin/python3 pipeline.py >> pipeline.log 2>&1
