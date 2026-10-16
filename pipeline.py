@@ -9,7 +9,7 @@ NyayaSetu Shorts Pipeline
 
 Setup (one-time, local):
   pip install xai-sdk google-api-python-client google-auth-httplib2 google-auth-oauthlib requests
-  export XAI_API_KEY=...
+  # xAI key: either export XAI_API_KEY=... or drop it in apikey.txt in this folder
   # Google Cloud: create OAuth client (Desktop app), enable YouTube Data API v3,
   # download client_secrets.json into this folder
   python pipeline.py --auth
@@ -20,7 +20,7 @@ Run:
   python pipeline.py --dry-run       # generate + download only, no upload
 
 Env:
-  XAI_API_KEY          required
+  XAI_API_KEY          optional if apikey.txt exists
   YT_PRIVACY           public | unlisted | private (default: public)
   YT_SCHEDULE_OFFSET_H hours from now to schedule publish (Shorts: set >=0)
 """
@@ -34,6 +34,17 @@ try:
     HAS_XAI = True
 except ImportError:
     HAS_XAI = False
+
+def load_api_key():
+    """Load xAI key from env, or from apikey.txt in this folder."""
+    key = os.environ.get("XAI_API_KEY", "").strip()
+    if key:
+        return key
+    for name in ("apikey.txt", "api_key.txt", "API_KEY.txt"):
+        p = Path(name)
+        if p.exists():
+            return p.read_text(encoding="utf-8").strip()
+    return ""
 
 try:
     from google.oauth2.credentials import Credentials
@@ -79,9 +90,10 @@ def save_posted(posted):
 def generate_video(topic: str, duration: int = 10, resolution: str = "720p"):
     if not HAS_XAI:
         raise RuntimeError("xai-sdk not installed: pip install xai-sdk")
-    if not os.environ.get("XAI_API_KEY"):
-        raise RuntimeError("XAI_API_KEY not set")
-    client = Client(api_key=os.environ["XAI_API_KEY"])
+    api_key = load_api_key()
+    if not api_key:
+        raise RuntimeError("xAI API key not found: set XAI_API_KEY or add apikey.txt")
+    client = Client(api_key=api_key)
     prompt = (
         f"Vertical 9:16 Shorts-style cinematic explainer about Indian law: {topic}. "
         f"Warm parchment and ink aesthetic, subtle motion, calm visuals, educational tone."
@@ -191,7 +203,7 @@ def main():
                     description=(
                         f"Plain-language overview of {topic} under Indian central law. "
                         f"General information only — not legal advice. "
-                        f"Full texts: https://indiacode.ecourtsindia.com #Shorts"
+        f"Full texts: https://indiacode.ecourtsindia.com #Shorts"
                     ),
                     privacy=args.privacy,
                     publish_at=pub_at,
